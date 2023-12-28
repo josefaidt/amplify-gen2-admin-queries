@@ -16,9 +16,11 @@ import {
   ListUsersInGroupCommand,
 } from "@aws-sdk/client-cognito-identity-provider"
 import { Hono } from "hono"
-import { env } from "./env"
+import { cors } from "hono/cors"
+import { logger } from "hono/logger"
 import { validator } from "hono/validator"
 import { is, object, string } from "superstruct"
+import { env } from "./env"
 
 // https://hono.dev/getting-started/aws-lambda#access-aws-lambda-object
 type Bindings = {
@@ -57,10 +59,12 @@ function group(name: string): MiddlewareHandler<{ Bindings: Bindings }> {
       // const claims = c.env.event.requestContext.authorizer.claims
       // const groups = claims['cognito:group']
     }
-    next()
+    await next()
   }
 }
 
+app.use("*", logger())
+// app.use("*", cors())
 // middleware to check Cognito user group
 app.use("*", group("ADMINS"))
 app.use("*", async (c, next) => {
@@ -83,7 +87,7 @@ app.post(
     const command = new AdminAddUserToGroupCommand({
       GroupName: form.group,
       Username: form.username,
-      UserPoolId: env.COGNITO_USER_POOLS_ID,
+      UserPoolId: env.COGNITO_USER_POOL_ID,
     })
     const response = await cognito.send(command)
     return c.status(200)
@@ -103,7 +107,7 @@ app.post(
     const command = new AdminRemoveUserFromGroupCommand({
       GroupName: form.group,
       Username: form.username,
-      UserPoolId: env.COGNITO_USER_POOLS_ID,
+      UserPoolId: env.COGNITO_USER_POOL_ID,
     })
     const response = await cognito.send(command)
     return c.status(200)
@@ -121,7 +125,7 @@ app.post(
     const form = c.req.valid("form")
     const command = new AdminConfirmSignUpCommand({
       Username: form.username,
-      UserPoolId: env.COGNITO_USER_POOLS_ID,
+      UserPoolId: env.COGNITO_USER_POOL_ID,
     })
     const response = await cognito.send(command)
     return c.status(200)
@@ -139,7 +143,7 @@ app.post(
     const form = c.req.valid("form")
     const command = new AdminDisableUserCommand({
       Username: form.username,
-      UserPoolId: env.COGNITO_USER_POOLS_ID,
+      UserPoolId: env.COGNITO_USER_POOL_ID,
     })
     const response = await cognito.send(command)
     return c.status(200)
@@ -157,7 +161,7 @@ app.post(
     const form = c.req.valid("form")
     const command = new AdminEnableUserCommand({
       Username: form.username,
-      UserPoolId: env.COGNITO_USER_POOLS_ID,
+      UserPoolId: env.COGNITO_USER_POOL_ID,
     })
     const response = await cognito.send(command)
     return c.status(200)
@@ -175,7 +179,7 @@ app.get(
     const form = c.req.valid("form")
     const command = new AdminGetUserCommand({
       Username: form.username,
-      UserPoolId: env.COGNITO_USER_POOLS_ID,
+      UserPoolId: env.COGNITO_USER_POOL_ID,
     })
     const response = await cognito.send(command)
     return c.json(response)
@@ -184,7 +188,7 @@ app.get(
 
 app.get("/list-users", async (c) => {
   const command = new ListUsersCommand({
-    UserPoolId: env.COGNITO_USER_POOLS_ID,
+    UserPoolId: env.COGNITO_USER_POOL_ID,
   })
   const response = await cognito.send(command)
   return c.json(response)
@@ -192,7 +196,7 @@ app.get("/list-users", async (c) => {
 
 app.get("/list-groups", async (c) => {
   const command = new ListGroupsCommand({
-    UserPoolId: env.COGNITO_USER_POOLS_ID,
+    UserPoolId: env.COGNITO_USER_POOL_ID,
   })
   const response = await cognito.send(command)
   return c.json(response)
@@ -209,7 +213,7 @@ app.get(
     const form = c.req.valid("form")
     const command = new AdminListGroupsForUserCommand({
       Username: form.username,
-      UserPoolId: env.COGNITO_USER_POOLS_ID,
+      UserPoolId: env.COGNITO_USER_POOL_ID,
     })
     const response = await cognito.send(command)
     return c.json(response)
@@ -227,7 +231,7 @@ app.get(
     const form = c.req.valid("form")
     const command = new ListUsersInGroupCommand({
       GroupName: form.group,
-      UserPoolId: env.COGNITO_USER_POOLS_ID,
+      UserPoolId: env.COGNITO_USER_POOL_ID,
     })
     const response = await cognito.send(command)
     return c.status(200)
@@ -245,7 +249,7 @@ app.post(
     const form = c.req.valid("form")
     const command = new AdminUserGlobalSignOutCommand({
       Username: form.username,
-      UserPoolId: env.COGNITO_USER_POOLS_ID,
+      UserPoolId: env.COGNITO_USER_POOL_ID,
     })
     const response = await cognito.send(command)
     return c.status(200)

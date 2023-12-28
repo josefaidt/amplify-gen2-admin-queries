@@ -1,4 +1,3 @@
-import type { Role } from "aws-cdk-lib/aws-iam"
 import { defineBackend } from "@aws-amplify/backend"
 import { AdminQueries } from "admin-queries-construct"
 import { auth } from "./auth/resource"
@@ -8,7 +7,7 @@ const backend = defineBackend({
   auth,
 })
 
-const { authenticatedUserIamRole, userPool } = backend.auth.resources
+const { cfnResources, userPool, userPoolClient } = backend.auth.resources
 
 // define the groups
 const GROUPS = {
@@ -23,11 +22,21 @@ for (const group of Object.keys(GROUPS)) {
   groups[group] = new AuthGroup(groupsStack, `AuthGroup${group}`, {
     name: group,
     userPoolId: userPool.userPoolId,
+    identityPoolId: cfnResources.cfnIdentityPool.ref,
   })
 }
 
 const adminQueriesStack = backend.createStack("AdminQueries")
-new AdminQueries(adminQueriesStack, "AdminQueries", {
-  userPoolArn: userPool.userPoolArn,
-  allowRoles: [groups.ADMINS.role, authenticatedUserIamRole as Role],
+const adminQueries = new AdminQueries(adminQueriesStack, "AdminQueries", {
+  // @ts-ignore
+  userPool,
+  // @ts-ignore
+  userPoolClients: [userPoolClient],
+  allowGroups: [GROUPS.ADMINS],
+  cors: {
+    allowOrigins: ["http://localhost:5173"],
+    allowCredentials: true,
+  },
 })
+
+adminQueries.enableApiLogging()

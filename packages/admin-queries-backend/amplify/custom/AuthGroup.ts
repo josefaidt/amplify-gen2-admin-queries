@@ -12,6 +12,10 @@ export type AuthGroupProps = {
    * User Pool ID to create with
    */
   userPoolId: string
+  /**
+   * Identity Pool ID to validate with IAM
+   */
+  identityPoolId: string
 }
 
 export class AuthGroup extends Construct {
@@ -21,13 +25,13 @@ export class AuthGroup extends Construct {
   constructor(scope: Construct, id: string, props: AuthGroupProps) {
     super(scope, id)
 
-    const { name, userPoolId } = props
+    const { name, userPoolId, identityPoolId } = props
 
-    const userPoolGroupRole = new iam.Role(scope, `Group${name}Role`, {
+    const userPoolGroupRole = new iam.Role(scope, "GroupRole", {
       assumedBy: new iam.ServicePrincipal("cognito-idp.amazonaws.com", {
         conditions: {
           StringEquals: {
-            "cognito-identity.amazonaws.com:aud": userPoolId,
+            "cognito-identity.amazonaws.com:aud": identityPoolId,
           },
           "ForAnyValue:StringLike": {
             "cognito-identity.amazonaws.com:amr": "authenticated",
@@ -36,7 +40,7 @@ export class AuthGroup extends Construct {
       }),
     })
 
-    const userPoolGroup = new cognito.CfnUserPoolGroup(scope, `Group${name}`, {
+    const userPoolGroup = new cognito.CfnUserPoolGroup(scope, "Group", {
       userPoolId: userPoolId,
       groupName: name,
       roleArn: userPoolGroupRole.roleArn,
