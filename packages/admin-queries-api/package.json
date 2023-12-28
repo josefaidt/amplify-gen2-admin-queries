@@ -1,0 +1,17 @@
+{
+  "name": "admin-queries-api",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./handler": "./handler.ts",
+    "./app": "./app.ts"
+  },
+  "dependencies": {
+    "@aws-sdk/client-cognito-identity-provider": "^3.481.0",
+    "hono": "^3.11.11",
+    "superstruct": "^1.0.3"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.130"
+  }
+}
