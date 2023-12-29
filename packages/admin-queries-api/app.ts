@@ -64,7 +64,19 @@ function group(name: string): MiddlewareHandler<{ Bindings: Bindings }> {
 }
 
 app.use("*", logger())
-// app.use("*", cors())
+app.use(
+  "*",
+  cors({
+    credentials: true,
+    origin: [
+      "http://localhost:5173",
+      ...(env.ACCESS_CONTROL_ALLOW_ORIGINS || []),
+    ],
+    allowHeaders: ["content-type", "authorization"],
+    allowMethods: ["GET", "OPTIONS", "POST"],
+    maxAge: 600,
+  }),
+)
 // middleware to check Cognito user group
 app.use("*", group("ADMINS"))
 app.use("*", async (c, next) => {

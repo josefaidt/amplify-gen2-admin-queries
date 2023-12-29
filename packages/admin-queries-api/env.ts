@@ -1,11 +1,14 @@
 import type { Infer } from "superstruct"
 import type {} from "aws-lambda"
-import { create, coerce, type, string, array } from "superstruct"
+import { create, coerce, type, string, array, optional } from "superstruct"
 
 export const ProcessEnv = type({
   COGNITO_USER_POOL_ID: string(),
   ALLOWED_GROUPS: coerce(array(string()), string(), (value) =>
     JSON.parse(value),
+  ),
+  ACCESS_CONTROL_ALLOW_ORIGINS: optional(
+    coerce(array(string()), string(), (value) => JSON.parse(value)),
   ),
 })
 

@@ -48,6 +48,9 @@ export class AdminQueries extends Construct {
       environment: {
         COGNITO_USER_POOL_ID: props.userPool.userPoolId,
         ALLOWED_GROUPS: JSON.stringify(props.allowGroups),
+        ACCESS_CONTROL_ALLOW_ORIGINS: JSON.stringify(
+          props.cors?.allowOrigins || [],
+        ),
       },
     })
 
@@ -91,12 +94,10 @@ export class AdminQueries extends Construct {
           apigwv2.CorsHttpMethod.GET,
           apigwv2.CorsHttpMethod.POST,
           apigwv2.CorsHttpMethod.OPTIONS,
-          apigwv2.CorsHttpMethod.HEAD,
         ],
         allowHeaders: ["Content-Type", "Authorization"],
-        exposeHeaders: ["Date", "x-api-id"],
         maxAge: cdk.Duration.seconds(600),
-        // allowCredentials: true,
+        allowCredentials: true,
         ...props.cors,
       },
       disableExecuteApiEndpoint: false,
